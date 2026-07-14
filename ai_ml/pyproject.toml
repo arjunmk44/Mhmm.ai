@@ -1,0 +1,9 @@
+[tool.poetry]
+name = "iki-ai-ml"
+version = "0.1.0"
+description = "AI/ML module for IKI platform"
+authors = ["Your Name <you@example.com>"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

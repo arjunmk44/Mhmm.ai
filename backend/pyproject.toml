@@ -1,0 +1,9 @@
+[tool.poetry]
+name = "iki-backend"
+version = "0.1.0"
+description = "Backend for IKI platform"
+authors = ["Your Name <you@example.com>"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

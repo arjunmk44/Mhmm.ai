@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+pydantic
+pydantic-settings
+sqlalchemy
+psycopg2-binary
+pgvector
+alembic
+neo4j
+sentence-transformers
+langgraph
+google-genai
+apscheduler
+pytest
