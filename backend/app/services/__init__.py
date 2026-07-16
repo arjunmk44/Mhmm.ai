@@ -1,5 +1,4 @@
 """
-Business logic services package.
-
-Implementation will be added during backend development.
+Business logic and integration services package.
 """
+

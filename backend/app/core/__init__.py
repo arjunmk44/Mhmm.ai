@@ -1,5 +1,4 @@
 """
-Core configuration package.
-
-Implementation will be added during backend development.
+Core settings, security, and logging package.
 """
+

@@ -1,5 +1,5 @@
-"""
-Database declarative base.
+from sqlalchemy.orm import DeclarativeBase
 
-Implementation will be added during backend development.
-"""
+class Base(DeclarativeBase):
+    pass
+

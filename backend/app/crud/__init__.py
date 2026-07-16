@@ -1,5 +1,4 @@
 """
-CRUD operations package.
-
-Implementation will be added during backend development.
+CRUD data access functions package.
 """
+

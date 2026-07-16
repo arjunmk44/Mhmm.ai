@@ -28,14 +28,18 @@ services:
       dockerfile: Dockerfile
     container_name: iki-backend
     environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - NEO4J_URI=${NEO4J_URI}
-      - NEO4J_USERNAME=${NEO4J_USERNAME}
-      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - GROQ_API_KEY=${GROQ_API_KEY}
-      - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_KEY=${SUPABASE_KEY}
+      - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/iki}
+      - NEO4J_URI=${NEO4J_URI:-}
+      - NEO4J_USERNAME=${NEO4J_USERNAME:-neo4j}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GROQ_API_KEY=${GROQ_API_KEY:-}
+      - SUPABASE_URL=${SUPABASE_URL:-}
+      - SUPABASE_KEY=${SUPABASE_KEY:-}
+      - JWT_SECRET=${JWT_SECRET:-default_jwt_secret}
+      - FAILURE_SCAN_INTERVAL_HOURS=${FAILURE_SCAN_INTERVAL_HOURS:-6}
+      - MOCK_AI_ML=${MOCK_AI_ML:-false}
+
     ports:
       - "8000:8000"
     depends_on:

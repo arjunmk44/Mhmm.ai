@@ -1,5 +1,4 @@
 """
-Database package.
-
-Implementation will be added during backend development.
+Database session and ORM models package.
 """
+

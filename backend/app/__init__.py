@@ -1,5 +1,4 @@
 """
-Main application package.
-
-Implementation will be added during backend development.
+Industrial Knowledge Intelligence Platform App Package
 """
+
