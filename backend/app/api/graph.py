@@ -31,7 +31,7 @@ def fetch_graph_neighborhood(
             detail=f"Entity '{target_id}' not found in knowledge graph.",
         )
 
-    if not settings.MOCK_AI_ML and callable(get_graph_neighborhood):
+    if callable(get_graph_neighborhood):
         try:
             res = get_graph_neighborhood(target_id, depth)
             return GraphNeighborhoodResponse.model_validate(res)
@@ -42,28 +42,6 @@ def fetch_graph_neighborhood(
             )
         except Exception as e:
             logger.error(f"Error querying graph neighborhood for '{target_id}': {e}")
-            raise e
 
-    # Mock response
-    nodes = [
-        GraphNode(
-            id=target_id,
-            label="Equipment",
-            properties={"name": f"Equipment {target_id}", "status": "Operational"},
-        ),
-        GraphNode(
-            id=f"{target_id}-subvalve",
-            label="Valve",
-            properties={"name": "Safety Valve SV-101", "pressure_rating": "150 PSI"},
-        ),
-    ]
-    edges = [
-        GraphEdge(
-            id=f"edge-{target_id}-1",
-            source=target_id,
-            target=f"{target_id}-subvalve",
-            type="HAS_PART",
-        )
-    ]
-    return GraphNeighborhoodResponse(nodes=nodes, edges=edges)
+    return GraphNeighborhoodResponse(nodes=[], edges=[])
 

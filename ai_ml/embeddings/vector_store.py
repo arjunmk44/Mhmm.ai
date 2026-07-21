@@ -32,6 +32,10 @@ class VectorStore:
     def _init_db(self):
         if not self.engine:
             return
+        if self.engine.dialect.name != "postgresql":
+            logger.info(f"Database dialect is '{self.engine.dialect.name}'. Utilizing in-memory vector store fallback.")
+            self.engine = None
+            return
         try:
             with self.engine.begin() as conn:
                 conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))

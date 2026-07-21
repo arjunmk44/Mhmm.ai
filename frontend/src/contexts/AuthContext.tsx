@@ -9,19 +9,15 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
-      return !!localStorage.getItem('auth_token');
-    }
-    return false;
-  });
+  // Always start false to match SSR — sync from localStorage after hydration in useEffect
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    // Sync initial auth state from localStorage after hydration
+    setIsAuthenticated(!!localStorage.getItem('auth_token'));
 
     const handleAuthChange = () => {
-      const token = typeof localStorage !== 'undefined' ? localStorage.getItem('auth_token') : null;
-      setIsAuthenticated(!!token);
+      setIsAuthenticated(!!localStorage.getItem('auth_token'));
     };
 
     window.addEventListener('auth_change', handleAuthChange);

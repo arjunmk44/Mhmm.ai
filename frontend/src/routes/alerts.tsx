@@ -16,6 +16,7 @@ import {
   Wrench,
   Activity,
   Clock,
+  ArrowUpRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAlerts } from "../hooks/useAlerts";
@@ -24,7 +25,7 @@ import { formatDistanceToNow } from "date-fns";
 export const Route = createFileRoute("/alerts")({
   head: () => ({
     meta: [
-      { title: "Alerts — Mhmm.ai" },
+      { title: "Alerts - Mhmm.ai" },
       {
         name: "description",
         content:
@@ -36,6 +37,7 @@ export const Route = createFileRoute("/alerts")({
 });
 
 type Severity = "critical" | "warning" | "info" | "resolved";
+
 type Alert = {
   id: string;
   severity: Severity;
@@ -49,110 +51,65 @@ type Alert = {
   acknowledged: boolean;
 };
 
-const ALERTS: Alert[] = [
-  {
-    id: "A-2081",
-    severity: "critical",
-    tag: "P-101",
-    title: "Bearing failure predicted within 72h",
-    detail: "Vibration exceeds ISO 10816 zone C · trend rising 0.11 mm/s per day",
-    confidence: 0.94,
-    rootCause: "Vibration harmonics at 2x and 4x running speed suggest inner race defect.",
-    suggested: "Schedule inspection in next shutdown window; verify lube oil condition and re-align coupling.",
-    time: "02m",
-    acknowledged: false,
-  },
-  {
-    id: "A-2079",
-    severity: "warning",
-    tag: "HX-31",
-    title: "Heat exchanger fouling accelerating",
-    detail: "ΔP drift +12% vs 30-day baseline · fouling likely within 96h",
-    confidence: 0.81,
-    rootCause: "Feed contamination or crystallization on tube-side. Correlated with T-500 turbidity trend.",
-    suggested: "Initiate CIP per SOP-9 §4.2; sample feed for solids content.",
-    time: "18m",
-    acknowledged: false,
-  },
-  {
-    id: "A-2076",
-    severity: "warning",
-    tag: "V-204",
-    title: "Control valve stiction detected",
-    detail: "Valve travel deviation vs SP has doubled over the last shift",
-    confidence: 0.72,
-    rootCause: "Actuator air supply pressure fluctuating outside normal band; possible packing tightening.",
-    suggested: "Verify instrument air header pressure; schedule valve step test.",
-    time: "34m",
-    acknowledged: true,
-  },
-  {
-    id: "A-2074",
-    severity: "info",
-    tag: "T-500",
-    title: "Level sensor disagreement",
-    detail: "S-12 disagrees with radar LT-500 by 4.2%",
-    confidence: 0.66,
-    rootCause: "Possible foam in vessel or radar calibration drift.",
-    suggested: "Trigger anti-foam injection cycle; schedule LT-500 verification.",
-    time: "41m",
-    acknowledged: false,
-  },
-  {
-    id: "A-2069",
-    severity: "resolved",
-    tag: "SOP-9",
-    title: "Procedure revision published",
-    detail: "Rev 3.2 released; graph re-linked to 8 equipment nodes",
-    confidence: 0.99,
-    rootCause: "Scheduled documentation update.",
-    suggested: "Ops team acknowledged; no further action required.",
-    time: "2h",
-    acknowledged: true,
-  },
-];
-
-const SEV_STYLES: Record<Severity, { badge: string; ring: string; icon: typeof BellRing }> = {
-  critical: { badge: "bg-destructive/15 text-destructive ring-destructive/30", ring: "border-destructive/40", icon: ShieldAlert },
-  warning: { badge: "bg-signal/15 text-signal ring-signal/30", ring: "border-signal/40", icon: AlertTriangle },
-  info: { badge: "bg-primary/15 text-primary ring-primary/30", ring: "border-primary/40", icon: Info },
-  resolved: { badge: "bg-success/15 text-success ring-success/30", ring: "border-success/40", icon: CheckCircle2 },
+const SEV_STYLES: Record<Severity, { badge: string; icon: typeof BellRing; text: string }> = {
+  critical: { badge: "bg-red-100 text-red-700 ring-red-200", icon: ShieldAlert, text: "text-red-600" },
+  warning: { badge: "bg-amber-100 text-amber-700 ring-amber-200", icon: AlertTriangle, text: "text-amber-600" },
+  info: { badge: "bg-primary/10 text-primary ring-primary/20", icon: Info, text: "text-primary" },
+  resolved: { badge: "bg-emerald-100 text-emerald-700 ring-emerald-200", icon: CheckCircle2, text: "text-emerald-600" },
 };
 
-const SUMMARY = [
-  { key: "critical" as Severity, label: "Critical", value: 3, delta: "+1", icon: ShieldAlert, tone: "text-destructive" },
-  { key: "warning" as Severity, label: "Warning", value: 9, delta: "-2", icon: AlertTriangle, tone: "text-signal" },
-  { key: "info" as Severity, label: "Information", value: 14, delta: "0", icon: Info, tone: "text-primary" },
-  { key: "resolved" as Severity, label: "Resolved · 24h", value: 42, delta: "+7", icon: CheckCircle2, tone: "text-success" },
-];
-
 function AlertsPage() {
-  const { data: apiAlerts, isLoading, acknowledge, isAcknowledging, escalate, isEscalating } = useAlerts();
+  const { data: apiAlerts, acknowledge, isAcknowledging, escalate, isEscalating } = useAlerts();
   const [filter, setFilter] = useState<string | "all">("all");
-  const displayAlerts = apiAlerts && apiAlerts.length > 0 ? apiAlerts : ALERTS;
+  const displayAlerts = apiAlerts || [];
   const [selected, setSelected] = useState<any | null>(displayAlerts[0] || null);
+
+  const summaryData = [
+    { key: "critical" as Severity, label: "Critical", value: displayAlerts.filter((a: any) => a.severity === "critical" || a.severity === "high").length, icon: ShieldAlert },
+    { key: "warning" as Severity, label: "Warning", value: displayAlerts.filter((a: any) => a.severity === "warning" || a.severity === "medium").length, icon: AlertTriangle },
+    { key: "info" as Severity, label: "Information", value: displayAlerts.filter((a: any) => a.severity === "info" || a.severity === "low").length, icon: Info },
+    { key: "resolved" as Severity, label: "Acknowledged", value: displayAlerts.filter((a: any) => a.acknowledged).length, icon: CheckCircle2 },
+  ];
 
   const filtered = displayAlerts.filter((a: any) => filter === "all" || a.severity === filter);
 
   return (
-    <div className="space-y-6">
-      <header className="flex flex-col gap-2 border-b border-border pb-6">
-        <p className="flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-primary">
-          <BellRing className="h-3.5 w-3.5" aria-hidden />
-          Mhmm.ai · Predictive Maintenance
-        </p>
-        <h2 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-          Alerts
-        </h2>
-        <p className="max-w-2xl text-sm text-muted-foreground">
-          Predictive and rule-based alerts fused across sensor telemetry,
-          engineering knowledge, and historical failure patterns.
-        </p>
+    <div className="space-y-8">
+      {/* Hero Header */}
+      <header className="relative overflow-hidden rounded-3xl glass-panel p-8">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10"
+          style={{
+            background:
+              "radial-gradient(circle at 80% 30%, rgba(236,220,255,0.4) 0%, transparent 65%)",
+          }}
+        />
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3.5 py-1 text-xs font-semibold text-primary">
+              <BellRing className="h-3.5 w-3.5" aria-hidden />
+              Predictive Operations Intelligence
+            </div>
+            <h1 className="mt-2 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              Industrial Alerts
+            </h1>
+            <p className="mt-1 max-w-2xl text-xs text-muted-foreground leading-relaxed">
+              Predictive and rule-based alerts fused across sensor telemetry, engineering knowledge, and failure history.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-700">
+              <span className="h-2 w-2 rounded-full bg-amber-500 live-dot" />
+              {displayAlerts.filter((a: any) => !a.acknowledged).length} Open Alerts
+            </span>
+          </div>
+        </div>
       </header>
 
-      {/* Summary */}
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {SUMMARY.map((s) => {
+      {/* Summary Cards */}
+      <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {summaryData.map((s) => {
           const Icon = s.icon;
           const active = filter === s.key;
           return (
@@ -160,71 +117,73 @@ function AlertsPage() {
               key={s.key}
               onClick={() => setFilter(active ? "all" : s.key)}
               className={cn(
-                "group relative overflow-hidden rounded-md border p-4 text-left transition-colors",
-                active ? "border-primary/50 bg-primary/5" : "border-border bg-card/70 hover:border-primary/30",
+                "glass-card rounded-2xl p-5 text-left transition-all duration-300 cursor-pointer hover:-translate-y-1",
+                active && "ring-2 ring-primary bg-primary/10 shadow-lg",
               )}
             >
               <div className="flex items-start justify-between">
-                <div>
-                  <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">{s.label}</p>
-                  <p className={cn("mt-1 font-mono text-2xl font-semibold tabular-nums", s.tone)}>{s.value}</p>
+                <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{s.label}</p>
+                <div className="grid h-8 w-8 place-items-center rounded-xl bg-primary/10 text-primary">
+                  <Icon className="h-4 w-4" aria-hidden />
                 </div>
-                <Icon className={cn("h-5 w-5", s.tone)} aria-hidden />
               </div>
-              <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                {s.delta} vs prev shift
-              </p>
+              <p className="mt-3 text-2xl font-bold tabular-nums text-foreground">{s.value}</p>
             </button>
           );
         })}
       </section>
 
-      {/* Trend */}
-      <section className="rounded-md border border-border bg-card/70">
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <div className="flex items-center gap-2">
-            <Activity className="h-4 w-4 text-primary" aria-hidden />
-            <h3 className="text-sm font-semibold text-foreground">Alert Trend · 7 days</h3>
+      {/* 7-Day Alert Trend */}
+      <section className="glass-panel rounded-3xl p-6">
+        <div className="flex items-center justify-between border-b border-border/50 pb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="grid h-8 w-8 place-items-center rounded-xl bg-primary/10">
+              <Activity className="h-4 w-4 text-primary" aria-hidden />
+            </div>
+            <h3 className="text-sm font-bold text-foreground">7-Day Predictive Trend</h3>
           </div>
-          <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-            Fused predictive · rule-based
-          </span>
+          <span className="text-xs font-semibold text-muted-foreground">Telemetric + RAG fusion</span>
         </div>
-        <div className="p-4">
+        <div className="mt-5">
           <div className="flex h-24 items-end gap-1.5">
             {[3, 5, 4, 6, 8, 12, 9, 7, 10, 14, 11, 9, 15, 12, 8, 6, 9, 11, 13, 10, 12, 14, 9, 7, 5, 8, 11, 13].map((v, i) => (
-              <div key={i} className="flex-1 rounded-t-sm bg-linear-to-t from-destructive/30 to-signal/70" style={{ height: `${v * 6}%` }} aria-hidden />
+              <div
+                key={i}
+                className="flex-1 rounded-t-lg bg-primary/60 hover:bg-primary transition-all duration-200"
+                style={{ height: `${v * 6}%` }}
+                aria-hidden
+              />
             ))}
           </div>
-          <div className="mt-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-            <span>-7d</span><span>-3d</span><span className="text-foreground">now</span>
+          <div className="mt-3 flex items-center justify-between text-[11px] font-semibold text-muted-foreground">
+            <span>-7d</span>
+            <span>-3d</span>
+            <span className="text-primary font-bold">Now</span>
           </div>
         </div>
       </section>
 
-      {/* Toolbar */}
-      <section className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+      {/* Controls & Filter Tabs */}
+      <section className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="relative w-full max-w-md">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
           <input
             type="search"
-            placeholder="Search alerts, equipment tags, root causes…"
-            className="h-9 w-full rounded-md border border-input bg-surface/70 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground/80 focus:outline-hidden focus:ring-2 focus:ring-ring"
+            placeholder="Search alerts, equipment tags, root causes..."
+            className="h-10 w-full rounded-2xl border border-border/60 bg-white/60 pl-9 pr-4 text-xs font-medium text-foreground focus:border-primary focus:outline-none"
           />
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <button className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface/70 px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground">
-            <Filter className="h-3.5 w-3.5" aria-hidden />
-            Filters
-          </button>
-          <div className="flex overflow-hidden rounded-md border border-border font-mono text-[10px] uppercase tracking-widest">
+          <div className="flex p-1 glass-panel rounded-2xl gap-1">
             {(["all", "critical", "warning", "info", "resolved"] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
                 className={cn(
-                  "px-3 py-1.5 transition-colors",
-                  filter === f ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                  "rounded-xl px-3 py-1 text-[11px] font-bold transition-all cursor-pointer capitalize",
+                  filter === f
+                    ? "bg-primary text-white shadow-sm"
+                    : "text-muted-foreground hover:bg-primary/10 hover:text-primary",
                 )}
               >
                 {f}
@@ -234,144 +193,153 @@ function AlertsPage() {
         </div>
       </section>
 
-      {/* Timeline + detail */}
-      <section className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <ul className="space-y-2">
+      {/* Alert List + Detail Inspector */}
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">
+        {filtered.length === 0 ? (
+          <div className="glass-panel rounded-3xl p-12 text-center space-y-3 col-span-2">
+            <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-emerald-100 text-emerald-700">
+              <CheckCircle2 className="h-6 w-6" />
+            </div>
+            <h3 className="text-base font-bold text-foreground">No Active Alerts</h3>
+            <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+              All equipment systems are operating within normal telemetry thresholds.
+            </p>
+          </div>
+        ) : (
+        <ul className="space-y-3">
           {filtered.map((a: any) => {
             const sev = SEV_STYLES[a.severity as Severity] || SEV_STYLES.info;
-            const SevIcon = sev?.icon || Info;
+            const SevIcon = sev.icon;
             const active = selected?.id === a.id;
             return (
               <li key={a.id}>
-                <button
+                <div
                   onClick={() => setSelected(a)}
                   className={cn(
-                    "group grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-3 rounded-md border bg-card/70 p-3 text-left transition-colors hover:border-primary/40",
-                    active ? "border-primary/50 bg-primary/5" : "border-border",
-                    a.acknowledged && "opacity-70",
+                    "glass-panel rounded-2xl p-5 flex items-start gap-4 cursor-pointer transition-all duration-300 hover:shadow-md",
+                    active && "ring-2 ring-primary bg-primary/5",
+                    a.acknowledged && "opacity-60",
                   )}
                 >
-                  <div className={cn("grid h-9 w-9 shrink-0 place-items-center rounded-sm ring-1", sev?.badge || "bg-primary/15 text-primary ring-primary/30")}>
-                    <SevIcon className="h-4 w-4" aria-hidden />
+                  <div className={cn("grid h-10 w-10 shrink-0 place-items-center rounded-xl", sev.badge)}>
+                    <SevIcon className="h-5 w-5" aria-hidden />
                   </div>
-                  <div className="min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className={cn("rounded-sm px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest ring-1", sev?.badge || "bg-primary/15 text-primary ring-primary/30")}>
+                      <span className={cn("rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ring-1", sev.badge)}>
                         {a.severity}
                       </span>
-                      <span className="font-mono text-xs text-primary">{a.tag || "System"}</span>
-                      <p className="truncate text-sm font-medium text-foreground">{a.title || a.message}</p>
+                      <span className="font-bold text-xs text-primary">{a.tag || "System"}</span>
+                      <h4 className="font-bold text-sm text-foreground truncate">{a.title || a.message}</h4>
                     </div>
-                    <p className="mt-1 truncate text-xs text-muted-foreground">{a.detail || a.message}</p>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                      <span>{a.id}</span>
-                      <span className="text-border-strong">│</span>
-                      <span><Clock className="mr-1 inline h-3 w-3" aria-hidden />{a.created_at ? formatDistanceToNow(new Date(a.created_at)) : (a.time || "1m")} ago</span>
-                      {a.confidence && (
+                    <p className="mt-1 text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                      {a.detail || a.message}
+                    </p>
+                    <div className="mt-3 flex flex-wrap items-center gap-3 text-[11px] font-semibold text-muted-foreground">
+                      <span className="font-mono text-foreground">{a.id}</span>
+                      <span>·</span>
+                      <span>{a.created_at ? formatDistanceToNow(new Date(a.created_at)) : a.time || "1m"} ago</span>
+                      {a.confidence != null && (
                         <>
-                          <span className="text-border-strong">│</span>
-                          <span>Confidence <span className="text-foreground tabular-nums">{Math.round(a.confidence * 100)}%</span></span>
+                          <span>·</span>
+                          <span>Confidence <span className="font-bold text-foreground tabular-nums">{Math.round(a.confidence * 100)}%</span></span>
                         </>
                       )}
                       {a.acknowledged && (
                         <>
-                          <span className="text-border-strong">│</span>
-                          <span className="text-success">ACK'd</span>
+                          <span>·</span>
+                          <span className="font-bold text-emerald-600">Acknowledged</span>
                         </>
                       )}
                     </div>
                   </div>
-                </button>
+                </div>
               </li>
             );
           })}
         </ul>
+        )}
 
-        {/* Detail */}
+        {/* Selected Alert Inspector */}
         {selected && (
-          <aside className="rounded-md border border-border bg-card/70">
-            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <aside className="glass-panel rounded-3xl p-6 space-y-5 h-fit sticky top-4">
+            <div className="flex items-center justify-between border-b border-border/50 pb-4">
               <div className="flex items-center gap-2">
-                <span className={cn("rounded-sm px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest ring-1", SEV_STYLES[selected.severity as Severity]?.badge || "bg-primary/15 text-primary ring-primary/30")}>
+                <span className={cn("rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase ring-1", SEV_STYLES[selected.severity as Severity]?.badge || "bg-primary/10 text-primary")}>
                   {selected.severity}
                 </span>
-                <h3 className="text-sm font-semibold text-foreground">{selected.id}</h3>
+                <h3 className="font-bold text-sm text-foreground">{selected.id}</h3>
               </div>
-              <button aria-label="Close" onClick={() => setSelected(null)} className="grid h-7 w-7 place-items-center rounded-sm text-muted-foreground hover:bg-accent hover:text-foreground">
-                <X className="h-3.5 w-3.5" aria-hidden />
+              <button
+                aria-label="Close details"
+                onClick={() => setSelected(null)}
+                className="grid h-7 w-7 place-items-center rounded-xl text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer"
+              >
+                <X className="h-4 w-4" aria-hidden />
               </button>
             </div>
-            <div className="space-y-4 p-4">
-              <div>
-                <p className="font-mono text-[9px] uppercase tracking-widest text-muted-foreground">Asset</p>
-                <p className="mt-0.5 font-mono text-primary">{selected.tag || "System"}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-foreground">{selected.title || selected.message}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{selected.detail}</p>
-              </div>
 
-              <div className="rounded-md border border-border bg-surface/40 p-3">
-                <p className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-widest text-primary">
-                  <Sparkles className="h-3 w-3" aria-hidden /> AI Explanation
-                </p>
-                <p className="mt-1.5 text-xs text-foreground">{selected.rootCause}</p>
-                <div className="mt-2 flex items-center gap-2 font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Asset / Equipment</p>
+              <p className="mt-0.5 text-base font-bold text-primary">{selected.tag || "System"}</p>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-sm text-foreground">{selected.title || selected.message}</h4>
+              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{selected.detail}</p>
+            </div>
+
+            <div className="rounded-2xl glass-panel p-4 space-y-2">
+              <p className="flex items-center gap-2 text-xs font-bold text-primary">
+                <Sparkles className="h-4 w-4" aria-hidden /> AI Root Cause Analysis
+              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed">{selected.rootCause || "Engineered vibration anomaly analysis."}</p>
+              {selected.confidence != null && (
+                <div className="pt-2 flex items-center gap-2 text-[11px] font-semibold text-muted-foreground">
                   <span>Confidence</span>
-                  <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted/60">
-                    <div className="h-full bg-primary" style={{ width: `${selected.confidence * 100}%` }} />
+                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-primary/10">
+                    <div className="h-full rounded-full bg-primary" style={{ width: `${selected.confidence * 100}%` }} />
                   </div>
-                  <span className="tabular-nums text-foreground">{Math.round(selected.confidence * 100)}%</span>
+                  <span className="font-bold text-foreground tabular-nums">{Math.round(selected.confidence * 100)}%</span>
                 </div>
-              </div>
+              )}
+            </div>
 
-              <div className="rounded-md border border-border bg-surface/40 p-3">
-                <p className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-widest text-primary">
-                  <Wrench className="h-3 w-3" aria-hidden /> Suggested action
-                </p>
-                <p className="mt-1.5 text-xs text-foreground">{selected.suggested}</p>
-              </div>
+            <div className="rounded-2xl glass-panel p-4 space-y-1.5">
+              <p className="flex items-center gap-2 text-xs font-bold text-primary">
+                <Wrench className="h-4 w-4" aria-hidden /> Recommended Action
+              </p>
+              <p className="text-xs text-muted-foreground leading-relaxed">{selected.suggested || "Inspect pump alignment & lube oil condition per SOP-9."}</p>
+            </div>
 
-              <div>
-                <p className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
-                  <GitBranch className="h-3 w-3" aria-hidden /> Referenced entities
-                </p>
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {[selected.tag, "SOP-9", "S-12", "MAN-P101"].map((e) => (
-                    <span key={e} className="rounded-sm bg-primary/10 px-1.5 py-0.5 font-mono text-[10px] text-primary ring-1 ring-primary/25">
-                      {e}
-                    </span>
-                  ))}
-                </div>
+            <div>
+              <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                <GitBranch className="h-3.5 w-3.5" aria-hidden /> Related Knowledge Nodes
+              </p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {[selected.tag, "SOP-9", "S-12", "MAN-P101"].map((e) => (
+                  <span key={e} className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold text-primary ring-1 ring-primary/20">
+                    {e}
+                  </span>
+                ))}
               </div>
+            </div>
 
-              <div>
-                <p className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-widest text-muted-foreground">
-                  <FileText className="h-3 w-3" aria-hidden /> Acknowledgement history
-                </p>
-                <ul className="mt-1.5 space-y-1 text-[11px] text-muted-foreground">
-                  <li>· 02m — Raised by predictive engine</li>
-                  <li>· 01m — Routed to reliability queue</li>
-                  {selected.acknowledged && <li className="text-success">· now — Acknowledged by E. Nakamura</li>}
-                </ul>
-              </div>
-
-              <div className="flex items-center gap-2 border-t border-border pt-3">
-                <button
-                  onClick={() => acknowledge(selected.id)}
-                  disabled={selected.acknowledged || isAcknowledging}
-                  className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 cursor-pointer"
-                >
-                  <Check className="h-3.5 w-3.5" aria-hidden /> Acknowledge
-                </button>
-                <button 
-                  onClick={() => escalate(selected.id)}
-                  disabled={selected.escalated || isEscalating}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-md border border-input bg-surface/70 px-3 py-2 text-xs text-foreground hover:bg-accent disabled:opacity-50 cursor-pointer"
-                >
-                  Escalate
-                </button>
-              </div>
+            <div className="flex items-center gap-2 pt-3 border-t border-border/50">
+              <button
+                onClick={() => acknowledge(selected.id)}
+                disabled={selected.acknowledged || isAcknowledging}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-primary/25 hover:brightness-110 disabled:opacity-40 cursor-pointer transition-all"
+              >
+                <Check className="h-4 w-4" aria-hidden /> Acknowledge
+              </button>
+              <button
+                onClick={() => escalate(selected.id)}
+                disabled={selected.escalated || isEscalating}
+                className="inline-flex items-center justify-center gap-2 rounded-xl glass-panel border border-primary/30 px-4 py-2.5 text-xs font-bold text-primary hover:bg-primary/10 disabled:opacity-40 cursor-pointer transition-all"
+              >
+                Escalate
+              </button>
             </div>
           </aside>
         )}

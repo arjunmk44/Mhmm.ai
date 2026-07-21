@@ -20,7 +20,7 @@ scheduler = AsyncIOScheduler()
 def get_tracked_equipment_ids(db: Session) -> list[str]:
     """
     Collects equipment IDs/tags from ingested document graph node IDs
-    or returns a default list if none found.
+    or returns an empty list if none found.
     """
     documents = db.query(Document).filter(Document.status == "ingested").all()
     tags = set()
@@ -28,8 +28,6 @@ def get_tracked_equipment_ids(db: Session) -> list[str]:
         if doc.graph_node_ids:
             for tag in doc.graph_node_ids:
                 tags.add(tag)
-    if not tags:
-        return ["Pump-A", "Valve-101", "Compressor-01"]
     return list(tags)
 
 
@@ -54,12 +52,15 @@ def call_ai_ml_failure_scan(equipment_id: str):
 async def failure_scan_job() -> None:
     """
     Scheduled job that runs failure analysis scans across tracked equipment.
-    Includes full fallback-to-mock behavior so frontend feed is never broken.
     """
     logger.info("Executing scheduled failure_scan_job...")
     db: Session = SessionLocal()
     try:
         equipment_ids = get_tracked_equipment_ids(db)
+        if not equipment_ids:
+            logger.info("No tracked equipment found for failure scan.")
+            return
+
         alerts_created = 0
 
         # If AI/ML function is not configured or mock mode active or raises error

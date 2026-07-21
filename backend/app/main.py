@@ -1,8 +1,15 @@
+import os
+import sys
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+
+# Add root directory to sys.path to resolve ai_ml imports
+root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if root_dir not in sys.path:
+    sys.path.insert(0, root_dir)
 
 from app.core.config import settings
 from app.core.logging import logger
@@ -11,6 +18,7 @@ from app.db.session import engine
 from app.services.scheduler import start_scheduler, stop_scheduler
 
 from app.api import documents, query, graph, alerts, auth, stats
+
 
 
 @asynccontextmanager

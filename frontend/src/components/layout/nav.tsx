@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   Upload,
@@ -6,68 +6,47 @@ import {
   Search,
   Share2,
   BellRing,
-  Cog,
+  Sparkles,
+  Settings,
+  HelpCircle,
+  LogOut,
+  Plus,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 type NavItem = {
   title: string;
-  to: "/" | "/upload" | "/documents" | "/query" | "/graph" | "/alerts";
+  to: "/" | "/upload" | "/documents" | "/query" | "/graph" | "/alerts" | "/settings";
   icon: LucideIcon;
   exact?: boolean;
   badge?: string;
-  badgeTone?: "info" | "signal" | "danger";
 };
 
-type NavSection = {
-  label: string;
-  items: NavItem[];
-};
-
-export const NAV_SECTIONS: NavSection[] = [
-  {
-    label: "Operations",
-    items: [
-      { title: "Dashboard", to: "/", icon: LayoutDashboard, exact: true },
-      { title: "Alerts", to: "/alerts", icon: BellRing, badge: "12", badgeTone: "signal" },
-    ],
-  },
-  {
-    label: "Intelligence",
-    items: [
-      { title: "Knowledge Query", to: "/query", icon: Search },
-      { title: "Knowledge Graph", to: "/graph", icon: Share2 },
-    ],
-  },
-  {
-    label: "Data Sources",
-    items: [
-      { title: "Upload", to: "/upload", icon: Upload },
-      { title: "Documents", to: "/documents", icon: FileText },
-    ],
-  },
+export const NAV_ITEMS: NavItem[] = [
+  { title: "Dashboard", to: "/", icon: LayoutDashboard, exact: true },
+  { title: "Chat AI", to: "/query", icon: Search },
+  { title: "Knowledge Graph", to: "/graph", icon: Share2 },
+  { title: "Document Explorer", to: "/documents", icon: FileText },
+  { title: "Ingestion", to: "/upload", icon: Upload },
+  { title: "Alerts", to: "/alerts", icon: BellRing, badge: "3" },
+  { title: "Settings", to: "/settings", icon: Settings },
 ];
-
-export const NAV_ITEMS: NavItem[] = NAV_SECTIONS.flatMap((s) => s.items);
 
 export function BrandMark({ collapsed = false }: { collapsed?: boolean }) {
   return (
-    <div className="flex items-center gap-2.5 px-1.5 py-1">
-      <div className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-md bg-linear-to-br from-primary/25 to-primary/5 ring-1 ring-primary/40">
-        <Cog className="h-[18px] w-[18px] text-primary" aria-hidden />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,oklch(1_0_0/15%),transparent_60%)]"
-        />
+    <div className="flex items-center gap-3 px-2 py-2">
+      <div className="relative grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary text-white shadow-md shadow-primary/25">
+        <Sparkles className="h-5 w-5 fill-current" aria-hidden />
       </div>
       {!collapsed && (
         <div className="min-w-0 leading-tight">
-          <p className="flex items-center gap-1.5 truncate text-sm font-semibold tracking-tight text-sidebar-foreground">
-            Mhmm<span className="text-primary">.ai</span>
+          <p className="font-bold tracking-tight text-primary text-base">
+            Mhmm<span className="text-foreground">.ai</span>
           </p>
-          <p className="truncate font-mono text-[9px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
-            IND · KIP v0.1
+          <p className="truncate text-[10px] font-bold tracking-wider text-muted-foreground uppercase">
+            Operations Platform
           </p>
         </div>
       )}
@@ -82,20 +61,30 @@ interface NavListProps {
 
 export function NavList({ collapsed = false, onNavigate }: NavListProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const { logout } = useAuth();
 
   return (
-    <nav aria-label="Primary" className="flex flex-col gap-5 px-2">
-      {NAV_SECTIONS.map((section) => (
-        <div key={section.label} className="flex flex-col gap-0.5">
-          {!collapsed && (
-            <p className="px-2.5 pb-1.5 font-mono text-[9px] font-semibold uppercase tracking-[0.22em] text-muted-foreground/70">
-              {section.label}
-            </p>
-          )}
-          {collapsed && (
-            <div className="mx-3 mb-1 h-px bg-sidebar-border" aria-hidden />
-          )}
-          {section.items.map((item) => {
+    <div className="flex flex-col h-full justify-between">
+      <div className="space-y-4">
+        {/* New Chat Primary Action Button */}
+        {!collapsed && (
+          <div className="px-3 pt-2">
+            <button
+              onClick={() => {
+                navigate({ to: "/query" });
+                onNavigate?.();
+              }}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-xs font-bold text-white shadow-md shadow-primary/25 hover:brightness-110 active:scale-98 transition-all cursor-pointer"
+            >
+              <Plus className="h-4 w-4" />
+              New Chat
+            </button>
+          </div>
+        )}
+
+        <nav aria-label="Primary navigation" className="flex flex-col gap-1 px-3">
+          {NAV_ITEMS.map((item) => {
             const active = item.exact
               ? pathname === item.to
               : pathname === item.to || pathname.startsWith(`${item.to}/`);
@@ -109,28 +98,19 @@ export function NavList({ collapsed = false, onNavigate }: NavListProps) {
                 aria-current={active ? "page" : undefined}
                 title={collapsed ? item.title : undefined}
                 className={cn(
-                  "group relative flex items-center gap-3 rounded-md px-2.5 py-2 text-sm font-medium transition-colors",
-                  "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-foreground",
-                  "focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-ring",
-                  active && "bg-sidebar-accent text-sidebar-foreground",
+                  "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all duration-200",
+                  active
+                    ? "bg-primary text-white shadow-md shadow-primary/20"
+                    : "text-foreground/80 hover:bg-primary/10 hover:text-primary",
                   collapsed && "justify-center px-0",
                 )}
               >
-                {active && (
-                  <span
-                    aria-hidden
-                    className="absolute left-0 top-1/2 h-5 w-[2px] -translate-y-1/2 rounded-r bg-primary shadow-[0_0_8px_currentColor]"
-                  />
-                )}
                 <Icon
                   className={cn(
-                    "h-[17px] w-[17px] shrink-0 transition-colors",
-                    active
-                      ? "text-primary"
-                      : "text-muted-foreground group-hover:text-sidebar-foreground",
+                    "h-4 w-4 shrink-0 transition-colors",
+                    active ? "text-white" : "text-muted-foreground group-hover:text-primary",
                   )}
                   aria-hidden
-                  strokeWidth={active ? 2.25 : 1.75}
                 />
                 {!collapsed && (
                   <>
@@ -138,13 +118,8 @@ export function NavList({ collapsed = false, onNavigate }: NavListProps) {
                     {item.badge && (
                       <span
                         className={cn(
-                          "ml-auto rounded-sm px-1.5 py-0.5 font-mono text-[10px] font-semibold",
-                          item.badgeTone === "signal" &&
-                            "bg-signal/15 text-signal ring-1 ring-signal/30",
-                          item.badgeTone === "danger" &&
-                            "bg-destructive/15 text-destructive ring-1 ring-destructive/30",
-                          (!item.badgeTone || item.badgeTone === "info") &&
-                            "bg-primary/15 text-primary ring-1 ring-primary/30",
+                          "ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold",
+                          active ? "bg-white/20 text-white" : "bg-amber-100 text-amber-700",
                         )}
                       >
                         {item.badge}
@@ -155,8 +130,36 @@ export function NavList({ collapsed = false, onNavigate }: NavListProps) {
               </Link>
             );
           })}
-        </div>
-      ))}
-    </nav>
+        </nav>
+      </div>
+
+      {/* Bottom Actions: Help & Logout */}
+      <div className="px-3 pt-4 border-t border-border/40 space-y-1">
+        <Link
+          to="/settings"
+          onClick={onNavigate}
+          className={cn(
+            "flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold text-foreground/80 hover:bg-primary/10 hover:text-primary transition-all",
+            collapsed && "justify-center px-0",
+          )}
+        >
+          <HelpCircle className="h-4 w-4 text-muted-foreground" aria-hidden />
+          {!collapsed && <span>Help & Docs</span>}
+        </Link>
+        <button
+          onClick={() => {
+            logout();
+            onNavigate?.();
+          }}
+          className={cn(
+            "flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-bold text-red-600 hover:bg-red-100 transition-all cursor-pointer",
+            collapsed && "justify-center px-0",
+          )}
+        >
+          <LogOut className="h-4 w-4" aria-hidden />
+          {!collapsed && <span>Logout</span>}
+        </button>
+      </div>
+    </div>
   );
 }

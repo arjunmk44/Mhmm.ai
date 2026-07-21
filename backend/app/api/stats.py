@@ -40,9 +40,11 @@ def get_platform_stats(db: Session = Depends(get_db)):
 
     try:
         # Queries in last 24h from audit_log
-        result = db.execute(text(
-            "SELECT COUNT(*) FROM audit_log WHERE action = 'query_executed' AND created_at > NOW() - INTERVAL '24 hours'"
-        ))
+        if db.bind and db.bind.dialect.name == "sqlite":
+            query_sql = text("SELECT COUNT(*) FROM audit_log WHERE action = 'query_executed' AND created_at > datetime('now', '-1 day')")
+        else:
+            query_sql = text("SELECT COUNT(*) FROM audit_log WHERE action = 'query_executed' AND created_at > NOW() - INTERVAL '24 hours'")
+        result = db.execute(query_sql)
         stats["queries_24h"] = result.scalar() or 0
     except Exception as e:
         logger.warning(f"Stats: could not count queries: {e}")

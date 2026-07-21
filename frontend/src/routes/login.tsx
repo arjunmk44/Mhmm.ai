@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Lock, User, Loader2 } from "lucide-react";
+import { Lock, User, Loader2, Sparkles, Shield, ArrowRight } from "lucide-react";
 import api from "@/api/client";
 import { toast } from "sonner";
 
@@ -26,14 +26,13 @@ function LoginPage() {
       if (response.data.access_token) {
         login(response.data.access_token);
         toast.success("Authentication successful");
-        
-        // Wait briefly for state to propagate
+
         setTimeout(() => {
           router.invalidate();
           navigate({ to: "/" });
         }, 100);
       }
-    } catch (error) {
+    } catch {
       toast.error("Authentication failed. Please check credentials.");
     } finally {
       setIsLoading(false);
@@ -41,31 +40,43 @@ function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8 dark">
-      <div className="w-full max-w-md space-y-8 rounded-2xl border border-border bg-card/60 p-10 backdrop-blur shadow-xl">
-        <div className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <Lock className="h-6 w-6 text-primary" />
+    <div className="relative min-h-screen flex items-center justify-center bg-background px-4 py-12">
+      {/* Background Radial Glow */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-10"
+        style={{
+          background:
+            "radial-gradient(circle at 50% 40%, rgba(236,220,255,0.7) 0%, rgba(254,247,255,1) 70%)",
+        }}
+      />
+
+      <div className="w-full max-w-md space-y-8 glass-panel rounded-3xl p-8 md:p-10 shadow-2xl backdrop-blur-2xl border border-primary/20">
+        <div className="text-center space-y-3">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-primary text-white shadow-xl shadow-primary/30">
+            <Sparkles className="h-7 w-7" aria-hidden />
           </div>
-          <h2 className="mt-6 text-3xl font-bold tracking-tight text-foreground">
-            Sign in to your account
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Industrial Knowledge Intelligence Platform
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">
+            <Shield className="h-3.5 w-3.5" />
+            Industrial AI Operational Portal
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            Mhmm.ai Workspace
+          </h1>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Ingest engineering documents, query equipment knowledge, and monitor predictive maintenance alerts.
           </p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4 rounded-md shadow-sm">
+
+        <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+          <div className="space-y-4">
             <div>
-              <label
-                htmlFor="username"
-                className="block text-sm font-medium text-foreground"
-              >
+              <label htmlFor="username" className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
                 Username
               </label>
-              <div className="relative mt-1">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <User className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                  <User className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 </div>
                 <input
                   id="username"
@@ -74,21 +85,19 @@ function LoginPage() {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="block w-full rounded-md border border-input bg-background py-2 pl-10 pr-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
+                  className="w-full rounded-2xl border border-border/60 bg-white/60 py-3 pl-10 pr-4 text-xs font-semibold text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                   placeholder="Username"
                 />
               </div>
             </div>
+
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-foreground"
-              >
+              <label htmlFor="password" className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
                 Password
               </label>
-              <div className="relative mt-1">
-                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Lock className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+              <div className="relative">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5">
+                  <Lock className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 </div>
                 <input
                   id="password"
@@ -97,25 +106,33 @@ function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full rounded-md border border-input bg-background py-2 pl-10 pr-3 text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary sm:text-sm"
+                  className="w-full rounded-2xl border border-border/60 bg-white/60 py-3 pl-10 pr-4 text-xs font-semibold text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                   placeholder="Password"
                 />
               </div>
             </div>
           </div>
 
-          <div>
+          <div className="pt-2">
             <button
               type="submit"
               disabled={isLoading}
-              className="flex w-full justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 text-sm font-bold text-white shadow-lg shadow-primary/25 hover:brightness-110 disabled:opacity-40 cursor-pointer transition-all active:scale-95"
             >
               {isLoading ? (
                 <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                "Sign in"
+                <>
+                  Sign In <ArrowRight className="h-4 w-4" />
+                </>
               )}
             </button>
+          </div>
+
+          <div className="text-center pt-2">
+            <p className="text-[11px] font-semibold text-muted-foreground">
+              Demo access: <span className="font-mono text-primary font-bold">demo</span> / <span className="font-mono text-primary font-bold">demo</span>
+            </p>
           </div>
         </form>
       </div>

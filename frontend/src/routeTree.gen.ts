@@ -15,6 +15,7 @@ import { Route as DocumentsRouteImport } from './routes/documents'
 import { Route as GraphRouteImport } from './routes/graph'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as QueryRouteImport } from './routes/query'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as UploadRouteImport } from './routes/upload'
 
@@ -48,6 +49,11 @@ const QueryRoute = QueryRouteImport.update({
   path: '/query',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/graph': typeof GraphRoute
   '/login': typeof LoginRoute
   '/query': typeof QueryRoute
+  '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/upload': typeof UploadRoute
 }
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/graph': typeof GraphRoute
   '/login': typeof LoginRoute
   '/query': typeof QueryRoute
+  '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/upload': typeof UploadRoute
 }
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/graph': typeof GraphRoute
   '/login': typeof LoginRoute
   '/query': typeof QueryRoute
+  '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/upload': typeof UploadRoute
 }
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/graph'
     | '/login'
     | '/query'
+    | '/settings'
     | '/sitemap.xml'
     | '/upload'
   fileRoutesByTo: FileRoutesByTo
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/graph'
     | '/login'
     | '/query'
+    | '/settings'
     | '/sitemap.xml'
     | '/upload'
   id:
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/graph'
     | '/login'
     | '/query'
+    | '/settings'
     | '/sitemap.xml'
     | '/upload'
   fileRoutesById: FileRoutesById
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   GraphRoute: typeof GraphRoute
   LoginRoute: typeof LoginRoute
   QueryRoute: typeof QueryRoute
+  SettingsRoute: typeof SettingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   UploadRoute: typeof UploadRoute
 }
@@ -178,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof QueryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -202,6 +222,7 @@ const rootRouteChildren: RootRouteChildren = {
   GraphRoute: GraphRoute,
   LoginRoute: LoginRoute,
   QueryRoute: QueryRoute,
+  SettingsRoute: SettingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   UploadRoute: UploadRoute,
 }
