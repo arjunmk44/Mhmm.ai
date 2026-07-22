@@ -1,76 +1,134 @@
-# Industrial Knowledge Intelligence Platform
+# 🏭 Mhmm.ai — Industrial Knowledge Intelligence Platform
 
-An AI-powered platform for extracting, processing, and querying industrial knowledge using Retrieval-Augmented Generation (RAG) and graph databases.
-
----
-
-## 🏗️ Architecture Overview
-
-The system consists of three main pillars:
-- **Frontend**: A modern web interface for users to query the knowledge graph and visualize relationships.
-- **Backend**: A robust API for handling queries, data ingestion, and orchestration.
-- **AI/ML**: Agentic workflows and embeddings generation to power the intelligence of the platform.
+An AI-powered operational intelligence platform for ingesting, processing, and querying complex industrial engineering knowledge using Retrieval-Augmented Generation (RAG), pgvector vector search, and graph databases.
 
 ---
 
-## 🛠️ Tech Stack
+## 🏗️ System Architecture & Startup Flow
 
-### Frontend
-- **Framework**: React (Vite)
-- **Styling**: Tailwind CSS
-- **Data Fetching**: React Query
-- **Visualization**: react-force-graph
+```mermaid
+flowchart TD
+    subgraph Client["Frontend (React / Vite)"]
+        UI["Operator UI / RAG Chat / Knowledge Graph Explorer"]
+    end
 
-### Backend
-- **Framework**: FastAPI
-- **ORM**: SQLAlchemy
-- **Task Scheduling**: APScheduler
+    subgraph API["Backend (FastAPI)"]
+        AUTH["JWT Auth & Security Guard"]
+        Q_SERVICE["Query Service & RAG Engine"]
+        DOC_SERVICE["Document Ingestion Pipeline"]
+        SCHEDULER["APScheduler Background Failure Scanner"]
+    end
 
-### AI & Machine Learning
-- **LLM**: Gemini 2.5 Flash
-- **Agent Framework**: LangGraph
-- **Embeddings**: sentence-transformers/all-MiniLM-L6-v2
-- **Graph Integration**: Neo4j Python Driver
+    subgraph AI_ML["AI/ML Layer (LangGraph & LLM)"]
+        ROUTER["Model Router (Gemini 2.5 Flash / Groq Fallback)"]
+        EXTRACTOR["Entity & Relationship Extractor"]
+        RETRIEVER["Hybrid Retriever (Vector + Graph + Keyword)"]
+    end
 
-### Databases
-- **Vector/Relational DB**: PostgreSQL (Supabase with pgvector)
-- **Graph DB**: Neo4j AuraDB
+    subgraph Storage["Data Tier"]
+        PG["PostgreSQL + pgvector (Documents & Chunks)"]
+        NEO4J["Neo4j AuraDB / NetworkX Memory Graph"]
+    end
 
-### Infrastructure
-- **Containerization**: Docker & Docker Compose
-- **CI/CD**: GitHub Actions
-- **Backend Deployment**: Railway
-- **Frontend Deployment**: Vercel
-
----
-
-## 📁 Folder Structure
-
-```text
-.
-├── ai_ml/       # AI pipelines, embeddings, and LangGraph agents
-├── backend/     # FastAPI application code
-├── docker/      # Docker configurations
-├── docs/        # Project documentation
-├── frontend/    # React application code
-├── scripts/     # Helper scripts for development
-└── .github/     # GitHub Actions workflows
+    UI -->|JWT Auth / REST| AUTH
+    AUTH --> Q_SERVICE
+    AUTH --> DOC_SERVICE
+    DOC_SERVICE -->|Text & Multimodal| EXTRACTOR
+    EXTRACTOR -->|Nodes & Edges| NEO4J
+    DOC_SERVICE -->|Embeddings| PG
+    Q_SERVICE --> RETRIEVER
+    RETRIEVER --> PG
+    RETRIEVER --> NEO4J
+    Q_SERVICE --> ROUTER
 ```
 
 ---
 
-## 🚀 Setup Instructions
+## 🚀 Quick Start Instructions
 
-*(Placeholder: Instructions for setting up the local environment, including environment variables and Docker)*
+Getting Mhmm.ai running on your local machine requires **2 commands**.
+
+### Prerequisites
+- [Docker & Docker Compose](https://docs.docker.com/get-docker/) (v20.10+)
+- [Python 3.10+](https://www.python.org/downloads/) (Optional for local development)
+- [Node.js 18+](https://nodejs.org/) (Optional for local frontend)
 
 ---
 
-## 👥 Team Structure
+### Step 1: Environment Setup
+Run the setup script to initialize environment configurations, Python virtual environment, and Node dependencies:
 
-*(Placeholder: Add team members and their roles here)*
+```bash
+# Linux / macOS
+bash scripts/setup.sh
+```
+
+---
+
+### Step 2: Launch Platform
+Start all containerized services (PostgreSQL + pgvector, FastAPI Backend, React Frontend):
+
+```bash
+# Linux / macOS
+bash scripts/start-dev.sh
+
+# Windows (PowerShell)
+.\scripts\start-dev.ps1
+```
+
+Once running, access the platform endpoints:
+
+| Service | Access URL | Description |
+|---|---|---|
+| **Frontend Workspace** | [http://localhost:5173](http://localhost:5173) | Interactive Operator Portal & Knowledge Graph Canvas |
+| **Backend REST API** | [http://localhost:8000](http://localhost:8000) | FastAPI REST Service |
+| **OpenAPI Documentation** | [http://localhost:8000/docs](http://localhost:8000/docs) | Interactive Swagger UI API Docs |
+
+---
+
+## 🛠️ Developer Utility Commands
+
+### Clear Database & Reset Environment
+To purge operational documents, chunks, alerts, and upload caches while preserving database migrations:
+
+```bash
+python3 scripts/clear_db.py
+```
+
+### Run Tests & Verification
+```bash
+# Run backend pytest suite
+docker exec iki-backend pytest
+
+# Verify frontend production build
+docker exec iki-frontend npm run build
+```
+
+---
+
+## 🔐 Environment Variables Reference
+
+Key environment variables in `.env` / `backend/.env`:
+
+```env
+# PostgreSQL Database
+DATABASE_URL=postgresql://postgres:postgres@postgres:5432/iki
+
+# AI / LLM APIs
+GEMINI_API_KEY=AQ.Ab8RN6K_eCds...
+GROQ_API_KEY=gsk_HQmzONIb...
+
+# Neo4j Graph Database
+NEO4J_URI=neo4j+s://7fe11bca.databases.neo4j.io
+NEO4J_USERNAME=7fe11bca
+NEO4J_PASSWORD=...
+
+# Auth & Frontend
+JWT_SECRET=default_hackathon_jwt_secret_key_change_me
+VITE_API_BASE_URL=http://localhost:8000/api
+```
 
 ---
 
 ## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+Licensed under the [MIT License](./LICENSE).

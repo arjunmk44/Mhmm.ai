@@ -1,29 +1,36 @@
 $ErrorActionPreference = "Stop"
 
-Write-Host "Starting development environment..." -ForegroundColor Cyan
+Write-Host "[INFO] Starting Mhmm.ai development environment..." -ForegroundColor Cyan
 
-# Check if docker is installed
+# 1. Check Docker CLI
 if (-not (Get-Command "docker" -ErrorAction SilentlyContinue)) {
-    Write-Error "Docker could not be found. Please install Docker."
+    Write-Error "Docker could not be found. Please install Docker Desktop."
     exit 1
 }
 
-# Copy .env if it doesn't exist
+# 2. Check .env files
 if (-not (Test-Path ".env")) {
     if (Test-Path ".env.example") {
-        Write-Host "Creating .env file from .env.example..." -ForegroundColor Yellow
+        Write-Host "[INFO] Creating .env from .env.example..." -ForegroundColor Yellow
         Copy-Item ".env.example" ".env"
-    } else {
-        Write-Warning ".env.example not found, could not create .env"
     }
 }
 
-# Start services
-Write-Host "Bringing up Docker Compose services..." -ForegroundColor Cyan
+if (-not (Test-Path "backend/.env")) {
+    if (Test-Path ".env.example") {
+        Write-Host "[INFO] Creating backend/.env from .env.example..." -ForegroundColor Yellow
+        Copy-Item ".env.example" "backend/.env"
+    }
+}
+
+# 3. Bring up Docker services
+Write-Host "[INFO] Bringing up Docker Compose services (postgres, backend, frontend)..." -ForegroundColor Cyan
 docker compose up -d
 
-Write-Host "----------------------------------------" -ForegroundColor Green
-Write-Host "✅ Development environment is running!" -ForegroundColor Green
-Write-Host "📡 Backend: http://localhost:8000"
-Write-Host "🎨 Frontend: http://localhost:5173"
-Write-Host "----------------------------------------" -ForegroundColor Green
+Write-Host "====================================================" -ForegroundColor Cyan
+Write-Host "🚀 Mhmm.ai Development Platform is Running!" -ForegroundColor Green
+Write-Host "====================================================" -ForegroundColor Cyan
+Write-Host "📡 Backend API:         http://localhost:8000" -ForegroundColor White
+Write-Host "📖 API OpenAPI Docs:     http://localhost:8000/docs" -ForegroundColor White
+Write-Host "🎨 Frontend Workspace:   http://localhost:5173" -ForegroundColor White
+Write-Host "====================================================" -ForegroundColor Cyan
