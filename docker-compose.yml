@@ -1,8 +1,10 @@
+name: bedrock
+
 services:
 
   postgres:
     image: ankane/pgvector:latest
-    container_name: iki-postgres
+    container_name: bedrock-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -19,13 +21,13 @@ services:
       retries: 5
     restart: unless-stopped
     networks:
-      - iki-network
+      - bedrock-network
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: iki-backend
+    container_name: bedrock-backend
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgresql://postgres:postgres@postgres:5432/iki}
       - NEO4J_URI=${NEO4J_URI:-}
@@ -50,7 +52,7 @@ services:
       - ./backend:/app
       - ./ai_ml:/app/ai_ml
     networks:
-      - iki-network
+      - bedrock-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
       interval: 30s
@@ -61,7 +63,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: iki-frontend
+    container_name: bedrock-frontend
     environment:
       - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:8000/api}
     ports:
@@ -75,11 +77,11 @@ services:
       - ./frontend:/app
       - /app/node_modules
     networks:
-      - iki-network
+      - bedrock-network
 
 volumes:
   postgres_data:
 
 networks:
-  iki-network:
+  bedrock-network:
     driver: bridge
