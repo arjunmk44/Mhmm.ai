@@ -88,7 +88,7 @@ Unlike traditional vector search that only finds keyword-similar text snippets, 
 
 1. **Clone & Configure Environment**:
    ```bash
-   git clone https://github.com/arjunmk44/Mhmm.ai.git
+   git clone https://github.com/Bhagat2678/Hmm.ai.git
    cd Mhmm.ai
    ```
 
