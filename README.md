@@ -1,8 +1,26 @@
 # 🛡️ Bedrock — Industrial Knowledge Intelligence Platform
+> **AI-Powered Graph RAG & Failure Intelligence for Heavy Industry**
 
-An AI-powered operational intelligence platform for ingesting, processing, and querying complex industrial engineering knowledge using Retrieval-Augmented Generation (RAG), pgvector vector search, and graph databases.
+An AI-powered operational intelligence platform for ingesting, processing, and querying complex industrial engineering knowledge using Hybrid Retrieval-Augmented Generation (RAG), PostgreSQL `pgvector` dense vector search, and Neo4j graph databases.
 
-> 📖 **Complete Architecture & Submission Documentation**: See [DOCUMENTATION.md](./DOCUMENTATION.md) for full technical deep-dive, API reference, and demo walkthrough.
+> 📖 **Complete Architecture & Submission Documentation**: See [DOCUMENTATION.md](./DOCUMENTATION.md) for full technical deep-dive and API reference.
+
+---
+
+## 🌟 Executive Summary
+
+Industrial teams sit on mountains of knowledge — equipment manuals, inspection logs, failure reports, and Standard Operating Procedures (SOPs). However, critical operational insights remain trapped inside static PDFs and legacy records. When equipment fails on the plant floor, engineers waste precious hours manually searching across disparate files while downtime costs thousands of dollars per minute.
+
+**Bedrock** fixes this by transforming passive industrial documentation into an active, interconnected **Knowledge Intelligence Engine**. By combining **Vector Retrieval (pgvector)**, **Graph Neural Traversal (Neo4j AuraDB)**, and **Multi-Agent RAG (Gemini 2.5 Flash & Groq LLaMA-3.3-70B)**, Bedrock empowers operations teams to instantly query complex documentation, visualize equipment relationship networks, and proactively detect systemic failure risks.
+
+---
+
+## ⚡ Key Capabilities & Innovations
+
+* **🔍 Hybrid Graph-RAG Retrieval**: Combines dense vector search (`pgvector`) with Neo4j graph traversal for context-rich, citation-backed answers.
+* **🕸️ Interactive 2D Knowledge Graph Explorer**: Dynamic force-directed canvas visualizing relationships between Equipment (`P-101`, `V-204`), Sensors (`TT-301`, `PT-301` in green), Procedures (`SOP-301`), and Documents (in slate-gray).
+* **🚨 Agentic Failure Intelligence**: Autonomous background risk scanner detecting systemic vulnerabilities and generating real-time actionable alerts.
+* **📄 Multi-Modal Document Ingestion**: Ingests PDFs, TXT files, and manuals while automatically extracting entities and equipment tags.
 
 ---
 
@@ -10,7 +28,7 @@ An AI-powered operational intelligence platform for ingesting, processing, and q
 
 ```mermaid
 flowchart TD
-    subgraph Client["Frontend (React / Vite)"]
+    subgraph Client["Frontend (TanStack / React)"]
         UI["Operator UI / RAG Chat / Knowledge Graph Explorer"]
     end
 
@@ -22,13 +40,13 @@ flowchart TD
     end
 
     subgraph AI_ML["AI/ML Layer (LangGraph & LLM)"]
-        ROUTER["Model Router (Gemini 2.5 Flash / Groq Fallback)"]
+        ROUTER["Model Router (Gemini 2.5 Flash / Groq LLaMA-3.3-70B)"]
         EXTRACTOR["Entity & Relationship Extractor"]
         RETRIEVER["Hybrid Retriever (Vector + Graph + Keyword)"]
     end
 
     subgraph Storage["Data Tier"]
-        PG["PostgreSQL + pgvector (Documents & Chunks)"]
+        PG["PostgreSQL + pgvector (Supabase IPv4 Pooler)"]
         NEO4J["Neo4j AuraDB / NetworkX Memory Graph"]
     end
 
@@ -48,21 +66,39 @@ flowchart TD
 
 ## 🚀 Quick Start Instructions
 
-Bedrock supports a **Native Development Workflow** (no Docker required for day-to-day work, using Supabase PostgreSQL + Neo4j AuraDB cloud backends) as well as an optional Docker workflow.
+Bedrock supports a **Native Development Workflow** (using Supabase PostgreSQL + Neo4j AuraDB cloud backends) as well as an optional Docker workflow.
 
 ### Prerequisites
 - [Python 3.10+](https://www.python.org/downloads/)
-- [Node.js 18+](https://nodejs.org/)
+- [Node.js 20+](https://nodejs.org/)
 - [Docker & Docker Compose](https://docs.docker.com/get-docker/) (Optional for containerized deployments)
 
 ---
 
-### Step 1: Environment & Dependency Setup
-Run the setup script to initialize environment configurations, Python virtual environment, dependencies, and verify cloud database/AI API connections:
+### Step 1: Environment Setup
+Ensure your `.env` is configured with database and API keys:
 
-```bash
-# Linux / macOS
-bash scripts/setup.sh
+```env
+# PostgreSQL Database (Supabase IPv4 Pooler)
+DATABASE_URL=postgresql://postgres.beymztuvwxfkofmfjkfb:DatabaseMhmmai@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres
+
+# Supabase Platform
+SUPABASE_URL=https://beymztuvwxfkofmfjkfb.supabase.co
+SUPABASE_KEY=sb_publishable_JNUlDlmBlHVnwX1LeZ6iCQ_8uamMoNt
+SUPABASE_DATABASE_URL=postgresql://postgres:DatabaseMhmmai@db.beymztuvwxfkofmfjkfb.supabase.co:5432/postgres
+
+# Neo4j Graph Database
+NEO4J_URI=neo4j+s://7fe11bca.databases.neo4j.io
+NEO4J_USERNAME=7fe11bca
+NEO4J_PASSWORD=IatWX9suddZxn3cUKWXpIKL05QQ9g0sFCDg3hmXczrs
+
+# AI / LLM APIs
+GEMINI_API_KEY=yAQ.Ab8RN6K_eCdsEhxV9FC30TgAc5YZW1Z3I4Ewn8lEgdmEzckjNQ
+GROQ_API_KEY=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
+
+# Auth & Frontend
+JWT_SECRET=default_hackathon_jwt_secret_key_change_me
+VITE_API_BASE_URL=http://<host-ip>:8000/api
 ```
 
 ---
@@ -109,42 +145,14 @@ python3 scripts/clear_db.py
 ### Run Tests & Verification
 ```bash
 # Run backend pytest suite
-docker exec iki-backend pytest
+docker exec bedrock-backend pytest
 
 # Verify frontend production build
-docker exec iki-frontend npm run build
-```
-
----
-
-## 🔐 Environment Variables Reference
-
-Key environment variables in `.env` / `backend/.env`:
-
-```env
-# PostgreSQL Database (Supabase IPv4 Pooler)
-DATABASE_URL=postgresql://postgres.beymztuvwxfkofmfjkfb:DatabaseMhmmai@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres
-
-# Supabase Platform
-SUPABASE_URL=https://beymztuvwxfkofmfjkfb.supabase.co
-SUPABASE_KEY=sb_publishable_JNUlDlmBlHVnwX1LeZ6iCQ_8uamMoNt
-SUPABASE_DATABASE_URL=postgresql://postgres:DatabaseMhmmai@db.beymztuvwxfkofmfjkfb.supabase.co:5432/postgres
-
-# Neo4j Graph Database
-NEO4J_URI=neo4j+s://7fe11bca.databases.neo4j.io
-NEO4J_USERNAME=7fe11bca
-NEO4J_PASSWORD=IatWX9suddZxn3cUKWXpIKL05QQ9g0sFCDg3hmXczrs
-
-# AI / LLM APIs
-GEMINI_API_KEY=yAQ.Ab8RN6K_eCdsEhxV9FC30TgAc5YZW1Z3I4Ewn8lEgdmEzckjNQ
-GROQ_API_KEY=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
-
-# Auth & Frontend
-JWT_SECRET=default_hackathon_jwt_secret_key_change_me
-VITE_API_BASE_URL=http://<host-ip>:8000/api
+docker exec bedrock-frontend npm run build
 ```
 
 ---
 
 ## 📄 License
+
 Built for hackathon demonstration.
