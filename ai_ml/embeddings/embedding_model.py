@@ -21,20 +21,26 @@ class EmbeddingModel:
     def __init__(self, model_name: str = None):
         self.model_name = model_name or settings.EMBEDDING_MODEL_NAME
         self.model = None
-        
-        if HAS_SENTENCE_TRANSFORMERS:
-            try:
-                logger.info(f"Loading SentenceTransformer model '{self.model_name}'...")
-                self.model = SentenceTransformer(self.model_name)
-            except Exception as e:
-                logger.warning(f"Could not load SentenceTransformer model '{self.model_name}': {e}")
+        self._load_attempted = False
+
+    def _get_model(self):
+        if self.model is None and not self._load_attempted:
+            self._load_attempted = True
+            if HAS_SENTENCE_TRANSFORMERS:
+                try:
+                    logger.info(f"Loading SentenceTransformer model '{self.model_name}'...")
+                    self.model = SentenceTransformer(self.model_name)
+                except Exception as e:
+                    logger.warning(f"Could not load SentenceTransformer model '{self.model_name}': {e}")
+        return self.model
 
     def embed_text(self, text: str) -> List[float]:
         """Generates 384-dim embedding vector for single string."""
         if not text or not text.strip():
             return [0.0] * EMBEDDING_DIMENSION
 
-        if self.model is not None:
+        model = self._get_model()
+        if model is not None:
             try:
                 vec = self.model.encode(text, convert_to_numpy=True)
                 return vec.tolist()

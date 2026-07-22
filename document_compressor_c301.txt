@@ -1,0 +1,17 @@
+COMPRESSOR C-301 MAINTENANCE PROCEDURE AND SPECIFICATION
+Equipment Tag: C-301
+Type: Reciprocating Gas Compressor
+Associated Vessel: V-204
+Associated Sensor: PT-301, TT-301
+Location: Unit 400 Gas Treatment Facility
+
+Operational Parameters:
+Suction Pressure: 5.2 bar
+Discharge Pressure: 42.0 bar
+Operating Temperature: 82 C
+Max Allowed Temperature: 110 C
+
+Maintenance Schedule:
+Inspect suction valves every 2000 operating hours.
+Check crankcase oil level daily.
+If TT-301 exceeds 100 C, escalate alert to high severity and initiate emergency shutdown procedure SOP-301.

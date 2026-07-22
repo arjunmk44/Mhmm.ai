@@ -59,23 +59,33 @@ def get_platform_stats(db: Session = Depends(get_db)):
     # Get graph stats from ai_ml module if available
     try:
         from ai_ml.graph.neo4j_client import neo4j_client
+        records = None
         if neo4j_client.driver:
-            records = neo4j_client.run_query("MATCH (n) OPTIONAL MATCH (n)-[r]->(m) RETURN count(distinct n) AS nodes, count(distinct r) AS rels")
-            if records:
-                stats["graph_nodes"] = records[0].get("nodes", 0)
-                stats["graph_edges"] = records[0].get("rels", 0)
+            try:
+                records = neo4j_client.run_query("MATCH (n) OPTIONAL MATCH (n)-[r]->(m) RETURN count(distinct n) AS nodes, count(distinct r) AS rels")
+            except Exception:
+                records = None
+
+        if records and records[0].get("nodes", 0) > 0:
+            stats["graph_nodes"] = records[0].get("nodes", 0)
+            stats["graph_edges"] = records[0].get("rels", 0)
         elif neo4j_client.memory_graph is not None:
             stats["graph_nodes"] = neo4j_client.memory_graph.number_of_nodes()
             stats["graph_edges"] = neo4j_client.memory_graph.number_of_edges()
 
+        if neo4j_client.memory_graph is not None:
             # Count node types from memory graph
             for node_id, data in neo4j_client.memory_graph.nodes(data=True):
                 label = data.get("label", "").lower()
-                if label in ("equipment", "pump", "compressor", "valve", "exchanger", "vessel", "tank"):
+                props = data.get("properties", {})
+                p_type = str(props.get("type", "")).lower()
+                n_id_upper = str(node_id).upper()
+
+                if label in ("equipment", "pump", "compressor", "valve", "exchanger", "vessel", "tank") or any(n_id_upper.startswith(prefix) for prefix in ("P-", "V-", "HX-", "C-", "T-")):
                     stats["equipment_count"] += 1
-                elif label in ("sensor", "instrument", "tag"):
+                elif label in ("sensor", "instrument", "tag") or any(n_id_upper.startswith(prefix) for prefix in ("FT-", "TT-", "PT-")):
                     stats["sensor_count"] += 1
-                elif label in ("procedure", "sop", "document"):
+                elif label in ("procedure", "sop", "document") or "filename" in props:
                     stats["procedure_count"] += 1
                 elif label in ("failure", "failure_mode", "defect"):
                     stats["failure_count"] += 1

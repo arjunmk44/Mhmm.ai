@@ -4,6 +4,7 @@ Supports text, multimodal (images/PDFs), and structured JSON output.
 """
 
 import os
+import socket
 from typing import Optional, Union, Dict, Any, List
 from ai_ml.config.settings import settings
 from ai_ml.utils.logger import logger
@@ -15,6 +16,16 @@ try:
     HAS_GENAI_SDK = True
 except ImportError:
     HAS_GENAI_SDK = False
+
+# Ensure IPv4 socket preference for dual-stack Linux containers
+try:
+    _old_getaddrinfo = socket.getaddrinfo
+    def _ipv4_first_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+        res = _old_getaddrinfo(host, port, family, type, proto, flags)
+        return sorted(res, key=lambda x: 0 if x[0] == socket.AF_INET else 1)
+    socket.getaddrinfo = _ipv4_first_getaddrinfo
+except Exception:
+    pass
 
 
 class GeminiClient:

@@ -3,9 +3,17 @@ Universal Document Loader for parsing PDFs, spreadsheets, images, text, and emai
 """
 
 import io
-import pandas as pd
+try:
+    import pandas as pd
+    HAS_PANDAS = True
+except ImportError:
+    HAS_PANDAS = False
 from typing import Dict, Any, Tuple, Optional
-from PIL import Image
+try:
+    from PIL import Image
+    HAS_PIL = True
+except ImportError:
+    HAS_PIL = False
 
 try:
     import pypdf
@@ -90,6 +98,8 @@ class DocumentLoader:
         return extracted_text.strip(), None, "text/plain"
 
     def _load_spreadsheet(self, file_content: bytes, ext: str) -> str:
+        if not HAS_PANDAS:
+            return file_content.decode("utf-8", errors="replace")
         try:
             if ext == "csv":
                 df = pd.read_csv(io.BytesIO(file_content))
@@ -98,6 +108,7 @@ class DocumentLoader:
             return df.to_string(index=False)
         except Exception as e:
             logger.error(f"Failed to parse spreadsheet: {e}")
+            return file_content.decode("utf-8", errors="replace")
             return file_content.decode("utf-8", errors="ignore")
 
     def _load_docx(self, file_content: bytes) -> str:

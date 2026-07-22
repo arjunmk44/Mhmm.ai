@@ -3,7 +3,24 @@ Text chunking module using RecursiveCharacterTextSplitter with tag context prese
 """
 
 from typing import List, Dict, Any
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+try:
+    from langchain_text_splitters import RecursiveCharacterTextSplitter
+except ImportError:
+    try:
+        from langchain.text_splitter import RecursiveCharacterTextSplitter
+    except ImportError:
+        class RecursiveCharacterTextSplitter:
+            def __init__(self, chunk_size=500, chunk_overlap=100, **kwargs):
+                self.chunk_size = chunk_size
+                self.chunk_overlap = chunk_overlap
+            def split_text(self, text: str) -> List[str]:
+                chunks = []
+                step = max(1, self.chunk_size - self.chunk_overlap)
+                for i in range(0, len(text), step):
+                    chunks.append(text[i:i+self.chunk_size])
+                return chunks
+
 from ai_ml.utils.helpers import generate_chunk_id, extract_equipment_tags_regex
 
 
