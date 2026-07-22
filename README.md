@@ -79,26 +79,29 @@ Bedrock supports a **Native Development Workflow** (using Supabase PostgreSQL + 
 Ensure your `.env` is configured with database and API keys:
 
 ```env
-# PostgreSQL Database (Supabase IPv4 Pooler)
-DATABASE_URL=postgresql://postgres.<project_ref>:<password>@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres
+# PostgreSQL (Local Docker)
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+POSTGRES_DB=
 
-# Supabase Platform
-SUPABASE_URL=https://<your-project-ref>.supabase.co
-SUPABASE_KEY=your_supabase_anon_key
-SUPABASE_DATABASE_URL=postgresql://postgres:<password>@db.<your-project-ref>.supabase.co:5432/postgres
+# Supabase (Remote)
+SUPABASE_KEY=
+SUPABASE_URL=
+SUPABASE_DATABASE_URL=
 
-# Neo4j Graph Database
-NEO4J_URI=neo4j+s://<your-aura-db-id>.databases.neo4j.io
-NEO4J_USERNAME=neo4j
-NEO4J_PASSWORD=your_neo4j_password
+DATABASE_URL=
 
-# AI / LLM APIs
-GEMINI_API_KEY=your_gemini_api_key
-GROQ_API_KEY=your_groq_api_key
+# Neo4j
+NEO4J_URI=
+NEO4J_USERNAME=
+NEO4J_PASSWORD=
 
-# Auth & Frontend
-JWT_SECRET=your_jwt_secret_key
-VITE_API_BASE_URL=http://<host-ip>:8000/api
+# LLM APIs
+GEMINI_API_KEY=
+GROQ_API_KEY=
+
+# Frontend
+VITE_API_BASE_URL=
 ```
 
 ---
